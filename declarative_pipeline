@@ -1,0 +1,44 @@
+pipeline
+{
+    agent any
+    stages
+    {
+        stage('continousdownload')
+        {
+            steps
+            {
+                git 'https://github.com/SIVAPRACTICE1/java-code.git'
+            }
+        }
+        stage('continousbuild')
+        {
+            steps
+            {
+                sh 'mvn package'
+            }
+        }
+        stage('continousdeploy')
+        {
+            steps
+            {
+                sh 'scp /var/lib/jenkins/workspace/declarativepipeline/webapp/target/webapp.war ubuntu@172.31.62.88:/var/lib/tomcat9/webapps/testapp.war'
+            }
+        }
+        stage('continoustesting')
+        {
+            steps
+            {
+                git 'https://github.com/SIVAPRACTICE1/testing-scripts.git'
+                sh 'java -jar /var/lib/jenkins/workspace/declarativepipeline/testing.jar'
+            }
+        }
+        stage('continousdelivery')
+        {
+            steps
+            {
+                deploy adapters: [tomcat9(credentialsId: '2b104e9a-79ac-4a2c-b8eb-23a4b264fd3d', path: '', url: 'http://172.31.29.126:8080')], contextPath: 'prodapp', war: '**/*.war'
+            }
+        }
+        
+    }
+}
