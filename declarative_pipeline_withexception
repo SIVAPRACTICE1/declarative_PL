@@ -1,0 +1,68 @@
+pipeline{
+    agent any
+    stages{
+        stage('continousdownload'){
+            steps{
+                script{
+                    try{
+                        git 'https://github.com/SIVAPRACTICE1/java-code.git'
+                    }
+                    catch(Exception e){
+                        mail bcc: '', body: 'unable to download code form git', cc: '', from: '', replyTo: '', subject: 'git admin', to: 'sivaprasadk123@gmail.com'
+                    }     
+                }
+                
+            }
+        }
+        stage('continousbuild'){
+            steps{
+                script{
+                    try{
+                        sh 'mvn package'
+                    }
+                    catch(Exception e2){
+                        mail bcc: '', body: 'unable to create maven package', cc: '', from: '', replyTo: '', subject: 'developer', to: 'sivadevops2021@gmail.com'
+                    }
+                }
+            }
+            
+        }
+        stage('continousdeploy'){
+            steps{
+                script{
+                    try{
+                        sh 'scp /var/lib/jenkins/workspace/declarativepipeline/webapp/target/webapp.war ubuntu@172.31.62.88:/var/lib/tomcat9/webapps/testapp.war'
+                    }
+                    catch(Exception e3){
+                        mail bcc: '', body: 'unable to deploy to qa team', cc: '', from: '', replyTo: '', subject: 'qa team', to: 'deploy.@gmail.com'
+                    }
+                }
+            }
+        }
+        stage('continoustesting'){
+            steps{
+                script{
+                    try{
+                        git 'https://github.com/SIVAPRACTICE1/testing-scripts.git'
+                        sh 'java -jar /var/lib/jenkins/workspace/declarativepipeline/testing.jar'
+                    }
+                    catch(Exception e4){
+                        mail bcc: '', body: 'unable to run testing scripts', cc: '', from: '', replyTo: '', subject: 'testing.team', to: 'deploy.@gmail.com'
+                    }   
+                }   
+            }
+        }
+        stage('continousdelivery'){
+            steps{
+                script{
+                    try{
+                        deploy adapters: [tomcat9(credentialsId: '2b104e9a-79ac-4a2c-b8eb-23a4b264fd3d', path: '', url: 'http://172.31.29.126:8080')], contextPath: 'prodapp', war: '**/*.war'
+                    }
+                    catch(Exception e5){
+                        mail bcc: '', body: 'unable to deliver to prod env', cc: '', from: '', replyTo: '', subject: 'delivery.team', to: 'deploy.@gmail.com'
+                    }   
+                }
+            }
+        }
+    }
+}    
